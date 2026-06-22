@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<title>Flappy Bird</title>
+<style>
+body { background:#1a1a2e; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0; font-family:Arial,sans-serif; color:white; }
+h1 { color:#00ff88; margin-bottom:5px; }
+canvas { border:2px solid #00ff88; border-radius:8px; display:block; cursor:pointer; }
+a { margin-top:15px; color:#00ff88; text-decoration:none; border:1px solid #00ff88; padding:8px 16px; border-radius:6px; }
+</style>
+</head>
+<body>
+<h1>🐦 Flappy Bird</h1>
+<canvas id="c" width="400" height="500"></canvas>
+<a href="../index.html">← Geri</a>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+const W=400, H=500;
+let bird, pipes, score, state;
+
+function init(){
+bird={x:80,y:H/2,vy:0};
+pipes=[];
+score=0;
+state='wait'; // wait, play, dead
+}
+
+function flap(){
+if(state==='wait'||state==='dead') { init(); state='play'; }
+if(state==='play') bird.vy=-8;
+}
+
+c.addEventListener('click', flap);
+document.addEventListener('keydown', e=>{
+if(e.code==='Space'||e.code==='ArrowUp') { e.preventDefault(); flap(); }
+});
+
+let frame=0;
+function update(){
+if(state!=='play') return;
+frame++;
+bird.vy+=0.4;
+bird.y+=bird.vy;
+
+if(frame%90===0){
+const gap=130, top=50+Math.random()*(H-gap-100);
+pipes.push({x:W, top:top, bot:top+gap});
+}
+
+pipes.forEach(p=>p.x-=3);
+pipes=pipes.filter(p=>p.x>-60);
+
+// Skor
+pipes.forEach(p=>{ if(p.x+50===bird.x) score++; });
+
+// Toqquşma
+if(bird.y<0||bird.y>H) { state='dead'; return; }
+pipes.forEach(p=>{
+if(bird.x+15>p.x && bird.x-15<p.x+50 && (bird.y-15<p.top || bird.y+15>p.bot)){
+state='dead';
+}
+});
+}
+
+function draw(){
+// Arxa fon
+ctx.fillStyle='#70c5ce';
+ctx.fillRect(0,0,W,H);
+
+// Yer
+ctx.fillStyle='#ded895';
+ctx.fillRect(0,H-40,W,40);
+ctx.fillStyle='#5d8a3c';
+ctx.fillRect(0,H-45,W,10);
+
+// Borular
+pipes.forEach(p=>{
+ctx.fillStyle='#5dc45d';
+ctx.fillRect(p.x,0,50,p.top);
+ctx.fillRect(p.x,p.bot,50,H-p.bot);
+ctx.fillStyle='#3da33d';
+ctx.fillRect(p.x-3,p.top-20,56,20);
+ctx.fillRect(p.x-3,p.bot,56,20);
+});
+
+// Quş
+ctx.save();
+ctx.translate(bird.x, bird.y);
+ctx.rotate(Math.min(Math.max(bird.vy*0.05,-0.5),0.5));
+ctx.fillStyle='#f5c518';
+ctx.beginPath();
+ctx.ellipse(0,0,18,13,0,0,Math.PI*2);
+ctx.fill();
+ctx.fillStyle='#ff6b35';
+ctx.beginPath();
+ctx.ellipse(14,2,8,5,0,0,Math.PI*2);
+ctx.fill();
+ctx.fillStyle='white';
+ctx.beginPath();
+ctx.arc(5,-4,6,0,Math.PI*2);
+ctx.fill();
+ctx.fillStyle='black';
+ctx.beginPath();
+ctx.arc(7,-4,3,0,Math.PI*2);
+ctx.fill();
+ctx.restore();
+
+// Skor
+ctx.fillStyle='white';
+ctx.font='bold 28px Arial';
+ctx.textAlign='center';
+ctx.fillText(score, W/2, 40);
+
+// Mesajlar
+if(state==='wait'){
+ctx.fillStyle='rgba(0,0,0,0.4)';
+ctx.fillRect(0,0,W,H);
+ctx.fillStyle='#00ff88';
+ctx.font='bold 26px Arial';
+ctx.fillText('SPACE və ya klik — Başla', W/2, H/2);
+}
+if(state==='dead'){
+ctx.fillStyle='rgba(0,0,0,0.5)';
+ctx.fillRect(0,0,W,H);
+ctx.fillStyle='#ff4757';
+ctx.font='bold 30px Arial';
+ctx.fillText('Oyun Bitti!', W/2, H/2-
