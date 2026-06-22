@@ -2,90 +2,54 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pong</title>
 <style>
 body { background:#1a1a2e; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0; font-family:Arial,sans-serif; color:white; }
 h1 { color:#00ff88; margin-bottom:5px; }
 #info { color:#aaa; font-size:14px; margin-bottom:10px; }
-canvas { border:2px solid #00ff88; border-radius:8px; }
+canvas { border:2px solid #00ff88; border-radius:8px; display:block; }
 a { margin-top:20px; color:#00ff88; text-decoration:none; border:1px solid #00ff88; padding:8px 16px; border-radius:6px; }
 </style>
 </head>
 <body>
 <h1>🏓 Pong</h1>
-<div id="info">W/S — Sol | ↑/↓ — Sağ | Başlamaq üçün SPACE</div>
+<div id="info">W/S — Sol | ↑/↓ — Sağ</div>
 <canvas id="c" width="600" height="400"></canvas>
 <a href="../index.html">← Geri</a>
-
 <script>
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
-
-let started = false;
-const W = 600, H = 400;
-const paddleW = 12, paddleH = 80;
-
-let leftY = H/2 - paddleH/2;
-let rightY = H/2 - paddleH/2;
-let leftScore = 0, rightScore = 0;
-
-let ball = { x: W/2, y: H/2, vx: 4, vy: 3, size: 10 };
-
-const keys = {};
-document.addEventListener('keydown', e => {
-keys[e.key] = true;
-if (e.key === ' ' && !started) started = true;
-});
-document.addEventListener('keyup', e => keys[e.key] = false);
-
-function reset() {
-ball = { x: W/2, y: H/2, vx: (Math.random()>0.5?1:-1)*4, vy: (Math.random()>0.5?1:-1)*3, size: 10 };
-}
-
-function update() {
-if (!started) return;
-
-if (keys['w'] || keys['W']) leftY = Math.max(0, leftY - 5);
-if (keys['s'] || keys['S']) leftY = Math.min(H - paddleH, leftY + 5);
-if (keys['ArrowUp']) rightY = Math.max(0, rightY - 5);
-if (keys['ArrowDown']) rightY = Math.min(H - paddleH, rightY + 5);
-
-ball.x += ball.vx;
-ball.y += ball.vy;
-
-if (ball.y <= 0 || ball.y >= H) ball.vy *= -1;
-
-// Sol paddle
-if (ball.x - ball.size <= paddleW + 10 && ball.y >= leftY && ball.y <= leftY + paddleH) {
-ball.vx *= -1;
-ball.x = paddleW + 10 + ball.size;
-}
-// Sağ paddle
-if (ball.x + ball.size >= W - paddleW - 10 && ball.y >= rightY && ball.y <= rightY + paddleH) {
-ball.vx *= -1;
-ball.x = W - paddleW - 10 - ball.size;
-}
-
-if (ball.x < 0) { rightScore++; reset(); }
-if (ball.x > W) { leftScore++; reset(); }
-}
-
-function draw() {
-ctx.fillStyle = '#0f0f23';
-ctx.fillRect(0, 0, W, H);
-
-// Orta xətt
-ctx.setLineDash([10, 10]);
-ctx.strokeStyle = '#333';
-ctx.beginPath();
-ctx.moveTo(W/2, 0);
-ctx.lineTo(W/2, H);
-ctx.stroke();
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+const W=600, H=400, PW=12, PH=80, SPEED=5;
+let ly=H/2-PH/2, ry=H/2-PH/2, ls=0, rs=0;
+let bx=W/2, by=H/2, bvx=4, bvy=3;
+const keys={};
+window.addEventListener('keydown',e=>{keys[e.key]=true; e.preventDefault();});
+window.addEventListener('keyup',e=>{keys[e.key]=false;});
+function loop(){
+if(keys['w']||keys['W']) ly=Math.max(0,ly-SPEED);
+if(keys['s']||keys['S']) ly=Math.min(H-PH,ly+SPEED);
+if(keys['ArrowUp']) ry=Math.max(0,ry-SPEED);
+if(keys['ArrowDown']) ry=Math.min(H-PH,ry+SPEED);
+bx+=bvx; by+=bvy;
+if(by<=0||by>=H) bvy*=-1;
+if(bx<=PW+10&&by>=ly&&by<=ly+PH){bvx=Math.abs(bvx); bx=PW+11;}
+if(bx>=W-PW-10&&by>=ry&&by<=ry+PH){bvx=-Math.abs(bvx); bx=W-PW-11;}
+if(bx<0){rs++; bx=W/2; by=H/2; bvx=4; bvy=3;}
+if(bx>W){ls++; bx=W/2; by=H/2; bvx=-4; bvy=3;}
+ctx.fillStyle='#0f0f23'; ctx.fillRect(0,0,W,H);
+ctx.setLineDash([10,10]); ctx.strokeStyle='#333';
+ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke();
 ctx.setLineDash([]);
-
-// Xallar
-ctx.fillStyle = 'white';
-ctx.font = 'bold 32px Arial';
-ctx.fillText(leftScore, W/2 - 50, 40);
-ctx.fillText(rightScore, W/2 + 30
+ctx.fillStyle='white'; ctx.font='bold 32px Arial';
+ctx.fillText(ls,W/2-50,40); ctx.fillText(rs,W/2+30,40);
+ctx.fillStyle='#00ff88';
+ctx.fillRect(10,ly,PW,PH);
+ctx.fillRect(W-PW-10,ry,PW,PH);
+ctx.fillStyle='#ff4757';
+ctx.beginPath(); ctx.arc(bx,by,8,0,Math.PI*2); ctx.fill();
+requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
