@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<title>Pong</title>
+<style>
+body{
+    margin:0;
+    background:#1a1a2e;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+canvas{
+    border:3px solid #00ff88;
+    background:#0f0f23;
+}
+</style>
+</head>
+<body>
+
+<canvas id="game" width="800" height="500"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let player = {
+    x:20,
+    y:200,
+    width:15,
+    height:100,
+    speed:8
+};
+
+let ai = {
+    x:765,
+    y:200,
+    width:15,
+    height:100
+};
+
+let ball = {
+    x:400,
+    y:250,
+    r:10,
+    vx:5,
+    vy:5
+};
+
+let up=false, down=false;
+
+document.addEventListener("keydown",e=>{
+    if(e.key==="ArrowUp") up=true;
+    if(e.key==="ArrowDown") down=true;
+});
+
+document.addEventListener("keyup",e=>{
+    if(e.key==="ArrowUp") up=false;
+    if(e.key==="ArrowDown") down=false;
+});
+
+function update(){
+
+    if(up) player.y-=player.speed;
+    if(down) player.y+=player.speed;
+
+    if(player.y<0) player.y=0;
+    if(player.y+player.height>500)
+        player.y=500-player.height;
+
+    ai.y += ((ball.y-(ai.y+ai.height/2))*0.08);
+
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    if(ball.y<0 || ball.y>500)
+        ball.vy *= -1;
+
+    if(
+      ball.x-ball.r < player.x+player.width &&
+      ball.y > player.y &&
+      ball.y < player.y+player.height
+    ){
+      ball.vx *= -1;
+    }
+
+    if(
+      ball.x+ball.r > ai.x &&
+      ball.y > ai.y &&
+      ball.y < ai.y+ai.height
+    ){
+      ball.vx *= -1;
+    }
+
+    if(ball.x<0 || ball.x>800){
+        ball.x=400;
+        ball.y=250;
+    }
+}
+
+function draw(){
+
+    ctx.fillStyle="#0f0f23";
+    ctx.fillRect(0,0,800,500);
+
+    ctx.fillStyle="#00ff88";
+    ctx.fillRect(player.x,player.y,player.width,player.height);
+
+    ctx.fillRect(ai.x,ai.y,ai.width,ai.height);
+
+    ctx.beginPath();
+    ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="white";
+    for(let i=0;i<500;i+=30){
+        ctx.fillRect(398,i,4,20);
+    }
+}
+
+function gameLoop(){
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+
+</body>
+</html>
