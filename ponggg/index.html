@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pong</title>
+<style>
+body { background:#1a1a2e; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0; font-family:Arial,sans-serif; color:white; }
+h1 { color:#00ff88; margin-bottom:5px; }
+#info { color:#aaa; font-size:14px; margin-bottom:10px; }
+canvas { border:2px solid #00ff88; border-radius:8px; }
+a { margin-top:20px; color:#00ff88; text-decoration:none; border:1px solid #00ff88; padding:8px 16px; border-radius:6px; }
+</style>
+</head>
+<body>
+<h1>🏓 Pong</h1>
+<div id="info">W/S — Sol | ↑/↓ — Sağ | Başlamaq üçün SPACE</div>
+<canvas id="c" width="600" height="400"></canvas>
+<a href="../index.html">← Geri</a>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let started = false;
+const W = 600, H = 400;
+const paddleW = 12, paddleH = 80;
+
+let leftY = H/2 - paddleH/2;
+let rightY = H/2 - paddleH/2;
+let leftScore = 0, rightScore = 0;
+
+let ball = { x: W/2, y: H/2, vx: 4, vy: 3, size: 10 };
+
+const keys = {};
+document.addEventListener('keydown', e => {
+keys[e.key] = true;
+if (e.key === ' ' && !started) started = true;
+});
+document.addEventListener('keyup', e => keys[e.key] = false);
+
+function reset() {
+ball = { x: W/2, y: H/2, vx: (Math.random()>0.5?1:-1)*4, vy: (Math.random()>0.5?1:-1)*3, size: 10 };
+}
+
+function update() {
+if (!started) return;
+
+if (keys['w'] || keys['W']) leftY = Math.max(0, leftY - 5);
+if (keys['s'] || keys['S']) leftY = Math.min(H - paddleH, leftY + 5);
+if (keys['ArrowUp']) rightY = Math.max(0, rightY - 5);
+if (keys['ArrowDown']) rightY = Math.min(H - paddleH, rightY + 5);
+
+ball.x += ball.vx;
+ball.y += ball.vy;
+
+if (ball.y <= 0 || ball.y >= H) ball.vy *= -1;
+
+// Sol paddle
+if (ball.x - ball.size <= paddleW + 10 && ball.y >= leftY && ball.y <= leftY + paddleH) {
+ball.vx *= -1;
+ball.x = paddleW + 10 + ball.size;
+}
+// Sağ paddle
+if (ball.x + ball.size >= W - paddleW - 10 && ball.y >= rightY && ball.y <= rightY + paddleH) {
+ball.vx *= -1;
+ball.x = W - paddleW - 10 - ball.size;
+}
+
+if (ball.x < 0) { rightScore++; reset(); }
+if (ball.x > W) { leftScore++; reset(); }
+}
+
+function draw() {
+ctx.fillStyle = '#0f0f23';
+ctx.fillRect(0, 0, W, H);
+
+// Orta xətt
+ctx.setLineDash([10, 10]);
+ctx.strokeStyle = '#333';
+ctx.beginPath();
+ctx.moveTo(W/2, 0);
+ctx.lineTo(W/2, H);
+ctx.stroke();
+ctx.setLineDash([]);
+
+// Xallar
+ctx.fillStyle = 'white';
+ctx.font = 'bold 32px Arial';
+ctx.fillText(leftScore, W/2 - 50, 40);
+ctx.fillText(rightScore, W/2 + 30
